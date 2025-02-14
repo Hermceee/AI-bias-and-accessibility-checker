@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Web Accessibility & Bias Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        input {
+            padding: 10px;
+            width: 300px;
+            margin: 10px;
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h2>AI-Powered Web Accessibility & Bias Checker</h2>
+    <p>Enter a website URL to check for accessibility and bias issues:</p>
+    <input type="text" id="urlInput" placeholder="Enter website URL">
+    <button onclick="checkWebsite()">Check</button>
+    <div id="results"></div>
+
+    <script>
+        async function checkWebsite() {
+            let url = document.getElementById("urlInput").value;
+            if (!url) {
+                alert("Please enter a valid URL");
+                return;
+            }
+            
+            document.getElementById("results").style.display = "block";
+            document.getElementById("results").innerHTML = `<p>Fetching content from: <strong>${url}</strong>...</p>`;
+            
+            try {
+                let response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+                let data = await response.json();
+                let extractedText = new DOMParser().parseFromString(data.contents, "text/html").body.innerText;
+                
+                document.getElementById("results").innerHTML += `<p>Analyzing content...</p>`;
+                analyzeBias(extractedText);
+                checkAccessibility(url);
+            } catch (error) {
+                document.getElementById("results").innerHTML = `<p>Error fetching content. Ensure the URL is accessible.</p>`;
+            }
+        }
+
+        async function analyzeBias(text) {
+            let response = await fetch("https://api.example.com/bias-check", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content: text })
+            });
+            let result = await response.json();
+            document.getElementById("results").innerHTML += `<p>Bias Analysis: ${result.biasReport}</p>`;
+        }
+
+        async function checkAccessibility(url) {
+            let response = await fetch(`https://wave.webaim.org/api/request?key=zJMJVJsP50&url=${encodeURIComponent(url)}`);
+            let result = await response.json();
+            document.getElementById("results").innerHTML += `<p>Accessibility Issues Found: ${result.status.message}</p>`;
+        }
+    </script>
+</body>
+</html>
